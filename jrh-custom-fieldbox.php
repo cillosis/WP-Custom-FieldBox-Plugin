@@ -41,15 +41,25 @@ class jrh_custom_fieldbox_widget extends WP_Widget
     */
     function form($instance)
     {
-        $instance = wp_parse_args( (array) $instance, array( 'title' => '' ) );
-        $title = $instance['title'];
+        $instance = wp_parse_args( (array) $instance, array( 'title' => '', 'ignore' => '' ) );
+        $title = isset($instance['title']) ? $instance['title'] : "";
+        $ignore = isset($instance['ignore']) ? $instance['ignore'] : "";
         ?>
             Title:<br>
             <input 
                 name = "<?php echo($this->get_field_name('title')); ?>"
                 type = "text"
                 value = "<?php echo(esc_attr($title)); ?>"
-            >
+            ><br><br>
+            Ignore Fields:<br>
+            <input 
+                name = "<?php echo($this->get_field_name('ignore')); ?>"
+                type = "text"
+                value = "<?php echo(esc_attr($ignore)); ?>"
+            ><br>
+            <span style="font-size: 10px;">
+                Comma separated list of fields to ignore. Wildcards are accepted such as <b>myfield_*</b>.
+            </span>
         <?
     }
  
@@ -66,6 +76,7 @@ class jrh_custom_fieldbox_widget extends WP_Widget
     {
         $instance = $old_instance;
         $instance['title'] = $new_instance['title'];
+        $instance['ignore'] = $new_instance['ignore'];
         return $instance;
     }
 
@@ -98,6 +109,7 @@ class jrh_custom_fieldbox_widget extends WP_Widget
                         extract($args, EXTR_SKIP);
                         echo $before_widget;
                         $title = empty($instance['title']) ? ' ' : apply_filters('widget_title', $instance['title']);
+                        $ignore = empty($instance['ignore']) ? '' :  $instance['ignore'];
                         if (!empty($title))
                             echo $before_title . $title . $after_title;
 
@@ -108,12 +120,60 @@ class jrh_custom_fieldbox_widget extends WP_Widget
                             // Initialize output table
                             $output = "\n<div class='custom_fieldbox'><table>";
 
+                            // Cleanup ignore fields
+                            $ignore = explode(",", $ignore);
+                            if(is_array($ignore))
+                            {
+                                foreach($ignore as $key => $field)
+                                {
+                                    // Is this regular expression matching
+                                    if(stristr($field, "*"))
+                                    {
+                                        $ignore[$key] = array(
+                                            'type'  => 'regex',
+                                            'field' => str_replace("*", "(.)*", trim($field))
+                                        );
+                                    } 
+                                    // Or plain text matching
+                                    else 
+                                    {
+                                        $ignore[$key] = array( 
+                                            'type'  => 'text',
+                                            'field' => trim($field)
+                                        );
+                                    }
+                                }
+                            }
+
                             // Add rows
                             foreach($fields as $name => $value)
                             {
-                                // Ignore fields with a name beginning with an underscore
-                                $name_first_character = substr($name, 0, 1);
-                                if($name_first_character == "_")
+                                // If we have ignore fields
+                                $skipThis = false;
+                                if(is_array($ignore) && count($ignore) > 0)
+                                {
+                                    // See if this field matches any ignores
+                                    foreach($ignore as $ignoreField)
+                                    {
+                                        if($ignoreField['type'] == 'regex')
+                                        {
+                                            $pattern = '/'.$ignoreField['field'].'/i';
+                                            if(preg_match($pattern, $name))
+                                            {
+                                                $skipThis = true;
+                                                continue;
+                                            }
+                                        } else {
+                                            if(stristr($name, $ignoreField['field']))
+                                            {
+                                                $skipThis = true;
+                                                continue;
+                                            }
+                                        }
+                                        
+                                    }
+                                }
+                                if($skipThis == true) 
                                     continue;
 
                                 $output .= "<tr>";
