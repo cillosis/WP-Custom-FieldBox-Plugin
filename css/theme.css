@@ -1,0 +1,42 @@
+/**
+* Custom FieldBox Table Theme
+*/
+
+/* WordPress Generated Container for Widget */
+.widget_jrh_custom_fieldbox_widget h3 {
+    margin-bottom: 0px !important;
+}
+
+/* Wrapper DIV */
+.custom_fieldbox {
+    border: 1px solid #DDD;
+    padding: 10px;
+}
+
+.custom_fieldbox table {
+    width: 100%;
+    border-collapse:collapse;
+}
+
+.custom_fieldbox tr {
+    padding: 10px;
+}
+
+.custom_fieldbox td {
+}
+
+/* TD containing Field Name */
+.custom_fieldbox_title {
+    padding: 10px;
+    background-color: #333;
+    color: #FFF;
+    font-weight: bold;
+
+}
+
+/* TD containing Field Value */
+.custom_fieldbox_value {
+    word-wrap: break-word;
+    padding-top: 3px;
+    padding-bottom: 7px;
+}
