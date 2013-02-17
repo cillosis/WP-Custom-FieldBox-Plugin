@@ -164,7 +164,7 @@ class jrh_custom_fieldbox_widget extends WP_Widget
                                                 continue;
                                             }
                                         } else {
-                                            if(stristr($name, $ignoreField['field']))
+                                            if(!empty($ignoreField['field']) && stristr($name, $ignoreField['field']))
                                             {
                                                 $skipThis = true;
                                                 continue;
